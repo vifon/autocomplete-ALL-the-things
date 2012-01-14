@@ -1,0 +1,63 @@
+=encoding utf-8
+
+=head1 INSTALLATION
+
+Copy the F<autocomplete-ALL-the-things> file to the urxvt perl-lib directory (default: F<~/.urxvt/ext/>).
+
+=head1 DESCRIPTION
+
+Completes the currently typed word using the other words visible in the urxvt window.
+
+For example the terminal looks like this:
+
+  foo bar baz
+  >> _
+
+I type 'f':
+
+  foo bar baz
+  >> f_
+
+Now I can use autocomplete-ALL-the-things to expand the 'f' to 'foo'.
+
+  foo bar baz
+  >> foo_
+
+If I had typed 'b', it would be expanded to 'baz' and not 'bar' as 'baz' was more recent.
+
+It was strongly inspired by I<dabbrev> feature in GNU Emacs.
+
+=head1 USAGE
+
+Keys:
+
+=over 20
+
+=item M-/ (Alt+Slash)
+
+complete the current word
+
+=back
+
+=head1 TODO
+
+- customizable keys
+
+- multiple completion selection
+
+=head1 COPYRIGHT
+
+Copyright (C) 2012  Wojciech Siewierski
+
+This program is free software: you can redistribute it and/or modify
+it under the terms of the GNU General Public License as published by
+the Free Software Foundation, either version 3 of the License, or
+(at your option) any later version.
+
+This program is distributed in the hope that it will be useful,
+but WITHOUT ANY WARRANTY; without even the implied warranty of
+MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+GNU General Public License for more details.
+
+You should have received a copy of the GNU General Public License
+along with this program.  If not, see <http://www.gnu.org/licenses/>.
