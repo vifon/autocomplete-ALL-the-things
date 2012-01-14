@@ -47,12 +47,10 @@ sub findMatchingWord {
     my $found = 0;
     while (!$found && --$row >= 0) {
         $_ = $self->ROW_t($row);
-        $found = 1 if /\b${toMatch}/i;
+        if (/\b${toMatch}\w/i) {
+            s/^.*\b$toMatch(\w+).*$/$1/i;
+            return $_;
+        }
     }
-    if ($found) {
-        s/^.*\b$toMatch(\w*).*$/$1/i;
-        return $_;
-    } else {
-        return undef;
-    }
+    return undef;
 }
