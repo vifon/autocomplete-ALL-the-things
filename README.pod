@@ -1,8 +1,17 @@
 =encoding utf-8
 
+=head1 NAME
+
+autocomplete-ALL-the-things - an urxvt plugin allowing user to easily complete words
+
 =head1 INSTALLATION
 
 Copy the F<autocomplete-ALL-the-things> file to the urxvt perl-lib directory (default: F<~/.urxvt/ext/>).
+
+Add the following lines to your F<~/.Xresources>/F<~/.Xdefaults>:
+
+  URxvt.perl-ext-common: ...,autocomplete-ALL-the-things
+  URxvt.keysym.M-slash: perl:aAtt:complete
 
 =head1 DESCRIPTION
 
@@ -29,19 +38,9 @@ It was strongly inspired by I<dabbrev> feature in GNU Emacs.
 
 =head1 USAGE
 
-Keys:
-
-=over 20
-
-=item M-/ (Alt+Slash)
-
-complete the current word
-
-=back
+Just press the defined key (default: Alt-slash) to complete the word at point.
 
 =head1 TODO
-
-- customizable keys
 
 - multiple completion selection
 

@@ -17,10 +17,10 @@
 #########################################################################
 
 
-sub on_key_press {
-    my ($self, $event, $keysym) = @_;
+sub on_user_command {
+    my ($self, $cmd) = @_;
 
-    if ($event->{state} & $self->ModMetaMask && chr($keysym) eq '/') {
+    if ($cmd eq 'aAtt:complete') {
         my ($row, $col) = $self->screen_cur;
         my $toMatch = getCurrentWord($self, $row, $col);
         if ($toMatch) {
