@@ -33,11 +33,28 @@ sub on_user_command {
     ()
 }
 
+sub on_key_press {
+    my ($self, $event, $keysym) = @_;
+
+    if ($keysym <= 127 && $keysym != 0x20) { # if ASCII and not space
+        delete $self->{aTtt_lastToMatch};    # reset the memory
+    }
+
+    ()
+}
+
 sub getCurrentWord {
     my ($self, $row, $col) = @_;
 
-    $_ = substr($self->ROW_t($row), 0, $col);
-    s/.*?(\w*)$/$1/;
+    if (defined $self->{aTtt_lastToMatch}) {
+        $_ = substr($self->ROW_t($row),
+                    $self->{aTtt_lastToMatch},
+                    $col - $self->{aTtt_lastToMatch});
+    } else {
+        $_ = substr($self->ROW_t($row), 0, $col);
+        s/.*?(\w*)$/$1/;
+        $self->{aTtt_lastToMatch} = $col - length($_);
+    }
     return $_;
 }
 
@@ -47,8 +64,8 @@ sub findMatchingWord {
     my $found = 0;
     while (!$found && --$row >= 0) {
         $_ = $self->ROW_t($row);
-        if (/\b${toMatch}\w/i) {
-            s/^.*\b$toMatch(\w+).*$/$1/i;
+        if (/\b${toMatch}.?\w/i) {
+            s/^.*\b$toMatch(.?\w+).*$/$1/i;
             return $_;
         }
     }

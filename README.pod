@@ -40,9 +40,12 @@ It was strongly inspired by I<dabbrev> feature in GNU Emacs.
 
 Just press the defined key (default: Alt-slash) to complete the word at point.
 
+If you complete a word, type a space and then again try to complete a word, the
+word after the last match will be pasted there.
+
 =head1 TODO
 
-- multiple completion selection
+- multiple possible completion selection
 
 =head1 COPYRIGHT
 
