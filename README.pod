@@ -8,7 +8,7 @@ autocomplete-ALL-the-things - an urxvt plugin allowing user to easily complete w
 
 Copy the F<autocomplete-ALL-the-things> file to the urxvt perl-lib directory (default: F<~/.urxvt/ext/>).
 
-Add the following lines to your F<~/.Xresources>/F<~/.Xdefaults>:
+Add the following lines to your F<~/.Xresources> (or F<~/.Xdefaults>):
 
   URxvt.perl-ext-common: ...,autocomplete-ALL-the-things
   URxvt.keysym.M-slash: perl:aAtt:complete
