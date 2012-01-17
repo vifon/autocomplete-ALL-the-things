@@ -28,6 +28,8 @@ sub on_user_command {
             $self->tt_write($self->locale_encode($comp)) if $comp;
         }
         return 1;
+    } else {
+        delete $self->{aTtt_lastToMatch};
     }
 
     ()
@@ -50,6 +52,10 @@ sub getCurrentWord {
         $_ = substr($self->ROW_t($row),
                     $self->{aTtt_lastToMatch},
                     $col - $self->{aTtt_lastToMatch});
+        {
+            local $/ = ' ';                                        # remove the trailing space
+            chomp and $self->tt_write($self->locale_encode("")); # "press" backspace; not portable TODO
+        }
     } else {
         $_ = substr($self->ROW_t($row), 0, $col);
         s/.*?(\w*)$/$1/;
@@ -61,11 +67,17 @@ sub getCurrentWord {
 sub findMatchingWord {
     my ($self, $toMatch, $row) = @_;
 
-    my $found = 0;
-    while (!$found && --$row >= 0) {
-        $_ = $self->ROW_t($row);
-        if (/\b${toMatch}.?\w/i) {
-            s/^.*\b$toMatch(.?\w+).*$/$1/i;
+    for (my $i = $row; $i >= 0; --$i) {
+        $_ = $self->ROW_t($i);
+        if (/\b${toMatch}\W?\w/i) {
+            s/^.*\b$toMatch(\W?\w+).*$/$1/i;
+            return $_;
+        }
+    }
+    for (my $i = $row; $i >= 0; --$i) {
+        $_ = $self->ROW_t($i);
+        if (/\b${toMatch}\W{2}\w/i) {
+            s/^.*\b$toMatch(\W{2}\w+).*$/$1/i;
             return $_;
         }
     }
