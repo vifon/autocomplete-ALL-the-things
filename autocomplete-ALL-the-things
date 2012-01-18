@@ -61,7 +61,6 @@ sub getCurrentWord {
         s/.*?(\w*)$/$1/;
         $self->{aTtt_lastToMatch} = $col - length($_);
     }
-    warn "0: |",$_,"|";
     return $_;
 }
 
@@ -73,7 +72,6 @@ sub findMatchingWord {
         $_ = $self->ROW_t($i);
         if (/\b${toMatch}\w/i) {
             s/^.*\b$toMatch(\w+).*$/$1/i;
-            warn "1: |",$_,"|";
             return $_;
         }
     }
@@ -82,7 +80,6 @@ sub findMatchingWord {
             $_ = $self->ROW_t($i);
             if (/\b${toMatch}\W{$n}\w/i) {
                 s/^.*\b$toMatch(\W{$n}\w+).*$/$1/i;
-                warn "1: |",$_,"| $i";
                 return $_;
             }
         }
