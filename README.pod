@@ -11,7 +11,8 @@ Copy the F<autocomplete-ALL-the-things> file to the urxvt perl-lib directory (de
 Add the following lines to your F<~/.Xresources> (or F<~/.Xdefaults>):
 
   URxvt.perl-ext-common: ...,autocomplete-ALL-the-things
-  URxvt.keysym.M-slash:  perl:aAtt:complete
+  URxvt.keysym.M-question:  perl:aAtt:complete
+  URxvt.keysym.M-quotedbl:  perl:aAtt:undo
 
 =head1 DESCRIPTION
 
@@ -38,13 +39,15 @@ It was strongly inspired by I<dabbrev> feature in GNU Emacs and later by
 L<skeleton-complete|https://github.com/baohaojun/skeleton-complete> by Bao
 Haojun.
 
-For more advanced usage, see readme for I<skeleton-complete> and it's second "flavor".
-
-To undo the completion, just press the defined key a second time.
-
 =head1 USAGE
 
-Just press the defined key (in the example above: Alt-slash) to complete the word at point.
+Just press the key bound to I<perl:aAtt:complete> (in the example above: Alt-Shift-slash) to complete
+the word at point. Subsequent uses cycle through other possible completions (for
+now only one per line).
+
+Key bound to I<perl:aAtt:undo> undoes the completion.
+
+For more advanced usage, see readme for I<skeleton-complete> and it's second "flavor".
 
 =head1 ACKNOWLEDGMENTS
 

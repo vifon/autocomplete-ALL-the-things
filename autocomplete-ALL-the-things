@@ -37,9 +37,13 @@ sub on_user_command {
             }
         }
         return 1;
+    } elsif ($cmd eq 'aAtt:undo') {
+        undo_completion($self);
+
+        return 1;
     }
 
-    # forget the last completion on any command other than aAtt:complete
+    # forget the last completion on any other command
     completion_history_cleanup($self);
 
     ()
