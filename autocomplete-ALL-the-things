@@ -21,31 +21,28 @@ sub on_user_command {
     my ($self, $cmd) = @_;
 
     if ($cmd eq 'aAtt:complete') {
-        # if the last action was a completion, undo it
-        if (exists $self->{last_word}) {
-            replace_text($self, $self->{last_completion}, $self->{last_word});
-        } else {
-            my ($row, $col) = $self->screen_cur; # get cursor coordinates
-            my $word_to_complete = get_current_word($self, $row, $col); # read the word behind the cursor
+        my ($row, $col) = $self->screen_cur; # get cursor coordinates
+        my $word_to_complete = $self->{last_word} // # use the last used word or...
+                               get_current_word($self, $row, $col); # ...read the word behind the cursor
 
-            if ($word_to_complete) {
-                my $completion = find_match($self, $word_to_complete, $row);
-                if ($completion) {
-                    # save the last completed word
-                    $self->{last_word}       = $word_to_complete;
-                    # save the last completion
-                    $self->{last_completion} = $completion;
+        if ($word_to_complete) {
+            # continue the last search or start from the current row
+            my $completion = find_match($self, $word_to_complete, $self->{last_row} // $row);
+            if ($completion) {
+                # save the last completed word unless continuing the last search
+                $self->{last_word} //= $word_to_complete;
 
-                    replace_text($self, $word_to_complete, $completion);
-                }
+                replace_text($self, $self->{last_completion} // $word_to_complete, $completion);
+                $self->{last_completion} = $completion;
             }
-            return 1;
         }
+        return 1;
     }
 
     # forget the last completion on any command other than aAtt:complete
     delete $self->{last_word};
     delete $self->{last_completion};
+    delete $self->{last_row};
 
     ()
 }
@@ -57,6 +54,7 @@ sub on_key_press {
     if ($keysym <= 127) { # if ASCII
         delete $self->{last_word};
         delete $self->{last_completion};
+        delete $self->{last_row};
     }
 
     ()
@@ -103,15 +101,27 @@ sub find_match {
 
     my $regexp = skeleton_to_regex($word_to_match);
 
+    my $i;
     # iterate throughout all the rows starting with one above the cursor
-    for (my $i = $current_row-1; $i >= 0; --$i) {
+    for ($i = $current_row-1; $i >= 0; --$i) {
         $_ = $self->ROW_t($i);   # get the line of text from the row
 
         # check if there is a match
-        # check only on the begining of a word (defined as a non-whitespace string)
-        if (/.*\s($regexp\w*)/i or /^($regexp\w*)/i) {
+        # check only at the begining of a word (defined as a non-whitespace string)
+        if (/.*\b($regexp\w*)/i) {
+            # save the "last" completion information
+            $self->{last_row} = $i;
             return $1;
         }
     }
+
+    # no more possible completions, revert to the original word
+    if ($i < 0) {
+        replace_text($self, $self->{last_completion}, $self->{last_word});
+        delete $self->{last_word};
+        delete $self->{last_completion};
+        delete $self->{last_row};
+    }
+
     return undef;
 }
