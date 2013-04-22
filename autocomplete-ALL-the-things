@@ -106,7 +106,10 @@ sub find_match {
     # iterate throughout all the rows starting with one above the cursor
     for (my $i = $current_row-1; $i >= 0; --$i) {
         $_ = $self->ROW_t($i);   # get the line of text from the row
-        if (/.*($regexp\w*)/i) { # and check if there is a match
+
+        # check if there is a match
+        # check only on the begining of a word (defined as a non-whitespace string)
+        if (/.*\s($regexp\w*)/i or /^($regexp\w*)/i) {
             return $1;
         }
     }
