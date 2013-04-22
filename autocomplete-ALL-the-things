@@ -24,10 +24,7 @@ sub on_user_command {
         my $completion_function;
         if ($cmd eq 'aAtt:skeleton-complete') {
             $completion_function = \&skeleton_to_regex;
-        } else {
-            $completion_function = sub { shift; quotemeta };
         }
-
 
         my ($row, $col) = $self->screen_cur; # get cursor coordinates
         my $word_to_complete = $self->{last_word} // # use the last used word or...
@@ -35,12 +32,17 @@ sub on_user_command {
 
         if ($word_to_complete) {
             # continue the last search or start from the current row
-            my $completion = find_match($self, $word_to_complete, $self->{last_row} // $row, $completion_function);
+            my $completion = find_match($self,
+                                        $word_to_complete,
+                                        $self->{last_row} // $row,
+                                        $completion_function);
             if ($completion) {
                 # save the last completed word unless continuing the last search
                 $self->{last_word} //= $word_to_complete;
 
-                replace_text($self, $self->{last_completion} // $word_to_complete, $completion);
+                replace_text($self,
+                             $self->{last_completion} // $word_to_complete,
+                             $completion);
                 $self->{last_completion} = $completion;
             }
         }
@@ -106,6 +108,9 @@ sub skeleton_to_regex {
 
 sub find_match {
     my ($self, $word_to_match, $current_row, $regex_modifier) = @_;
+
+    # default identity modifier
+    $regex_modifier //= sub { shift; quotemeta };
 
     my $regexp = $regex_modifier->($word_to_match);
 
