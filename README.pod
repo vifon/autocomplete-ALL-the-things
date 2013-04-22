@@ -11,7 +11,8 @@ Copy the F<autocomplete-ALL-the-things> file to the urxvt perl-lib directory (de
 Add the following lines to your F<~/.Xresources> (or F<~/.Xdefaults>):
 
   URxvt.perl-ext-common: ...,autocomplete-ALL-the-things
-  URxvt.keysym.M-question:  perl:aAtt:complete
+  URxvt.keysym.M-C-slash:   perl:aAtt:complete
+  URxvt.keysym.M-question:  perl:aAtt:skeleton-complete
   URxvt.keysym.M-quotedbl:  perl:aAtt:undo
 
 =head1 DESCRIPTION
@@ -41,13 +42,16 @@ Haojun.
 
 =head1 USAGE
 
-Just press the key bound to I<perl:aAtt:complete> (in the example above: Alt-Shift-slash) to complete
-the word at point. Subsequent uses cycle through other possible completions (for
-now only one per line).
+Just press the key bound to I<perl:aAtt:complete> (in the example above:
+Alt-Ctrl-slash) to complete the word at point. Subsequent uses cycle through
+other possible completions (for now only one per line).
 
-Key bound to I<perl:aAtt:undo> undoes the completion.
+Key bound to I<perl:aAtt:undo> (Alt-Shift-quote) undoes the completion.
 
-For more advanced usage, see readme for I<skeleton-complete> and it's second "flavor".
+For more advanced completions use I<perl:aAtt:skeleton-complete>
+(Alt-Shift-slash). It's behavior is inspired by I<skeleton-complete>, please see
+L<its readme|http://baohaojun.github.io/skeleton-complete.html#sec-2-3> for an
+explanation.
 
 =head1 ACKNOWLEDGMENTS
 

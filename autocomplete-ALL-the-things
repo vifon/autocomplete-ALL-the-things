@@ -20,14 +20,22 @@
 sub on_user_command {
     my ($self, $cmd) = @_;
 
-    if ($cmd eq 'aAtt:complete') {
+    if ($cmd eq 'aAtt:complete' or $cmd eq 'aAtt:skeleton-complete') {
+        my $completion_function;
+        if ($cmd eq 'aAtt:skeleton-complete') {
+            $completion_function = \&skeleton_to_regex;
+        } else {
+            $completion_function = sub { shift; quotemeta };
+        }
+
+
         my ($row, $col) = $self->screen_cur; # get cursor coordinates
         my $word_to_complete = $self->{last_word} // # use the last used word or...
                                get_current_word($self, $row, $col); # ...read the word behind the cursor
 
         if ($word_to_complete) {
             # continue the last search or start from the current row
-            my $completion = find_match($self, $word_to_complete, $self->{last_row} // $row);
+            my $completion = find_match($self, $word_to_complete, $self->{last_row} // $row, $completion_function);
             if ($completion) {
                 # save the last completed word unless continuing the last search
                 $self->{last_word} //= $word_to_complete;
@@ -97,9 +105,9 @@ sub skeleton_to_regex {
 ######################################################################
 
 sub find_match {
-    my ($self, $word_to_match, $current_row) = @_;
+    my ($self, $word_to_match, $current_row, $regex_modifier) = @_;
 
-    my $regexp = skeleton_to_regex($word_to_match);
+    my $regexp = $regex_modifier->($word_to_match);
 
     my $i;
     # iterate throughout all the rows starting with one above the cursor or one above the last checked
