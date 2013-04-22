@@ -38,7 +38,7 @@ It was strongly inspired by I<dabbrev> feature in GNU Emacs and later by
 L<skeleton-complete|https://github.com/baohaojun/skeleton-complete> by Bao
 Haojun.
 
-For more advanced usage, see readme for I<skeleton-complete>.
+For more advanced usage, see readme for I<skeleton-complete> and it's second "flavor".
 
 To undo the completion, just press the defined key a second time.
 
