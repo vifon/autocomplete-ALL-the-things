@@ -40,9 +40,7 @@ sub on_user_command {
     }
 
     # forget the last completion on any command other than aAtt:complete
-    delete $self->{last_word};
-    delete $self->{last_completion};
-    delete $self->{last_row};
+    completion_history_cleanup($self);
 
     ()
 }
@@ -52,9 +50,7 @@ sub on_key_press {
 
     # forget the last completion when the user presses any ASCII key
     if ($keysym <= 127) { # if ASCII
-        delete $self->{last_word};
-        delete $self->{last_completion};
-        delete $self->{last_row};
+        completion_history_cleanup($self);
     }
 
     ()
@@ -102,26 +98,40 @@ sub find_match {
     my $regexp = skeleton_to_regex($word_to_match);
 
     my $i;
-    # iterate throughout all the rows starting with one above the cursor
+    # iterate throughout all the rows starting with one above the cursor or one above the last checked
     for ($i = $current_row-1; $i >= 0; --$i) {
         $_ = $self->ROW_t($i);   # get the line of text from the row
 
         # check if there is a match
-        # check only at the begining of a word (defined as a non-whitespace string)
+        # check only at the begining of a word
         if (/.*\b($regexp\w*)/i) {
-            # save the "last" completion information
+            # save in which row was that match
             $self->{last_row} = $i;
             return $1;
         }
     }
 
     # no more possible completions, revert to the original word
-    if ($i < 0) {
-        replace_text($self, $self->{last_completion}, $self->{last_word});
-        delete $self->{last_word};
-        delete $self->{last_completion};
-        delete $self->{last_row};
-    }
+    undo_completion($self) if $i < 0;
 
     return undef;
+}
+
+######################################################################
+
+sub completion_history_cleanup {
+    my ($self) = @_;
+
+    delete $self->{last_word};
+    delete $self->{last_completion};
+    delete $self->{last_row};
+}
+
+######################################################################
+
+sub undo_completion {
+    my ($self) = @_;
+
+    replace_text($self, $self->{last_completion}, $self->{last_word});
+    completion_history_cleanup($self);
 }
