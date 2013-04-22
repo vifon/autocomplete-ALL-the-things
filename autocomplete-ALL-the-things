@@ -108,7 +108,9 @@ sub find_match {
 
         # check if there is a match
         # check only at the begining of a word
-        if (/.*\b($regexp\w*)/i) {
+        if (/.*\b($regexp\w*)/i
+            or
+            /.*\s($regexp\w*)/i) {
             # save in which row was that match
             $self->{last_row} = $i;
             return $1;
