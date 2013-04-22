@@ -32,24 +32,27 @@ Now I can use autocomplete-ALL-the-things to expand the 'f' to 'foo'.
   foo bar baz
   >> foo_
 
-If I had typed 'b', it would be expanded to 'baz' and not 'bar' as 'baz' was more recent.
+If I had typed 'b', it would be expanded to 'baz' and not 'bar' as the rightmost match is used.
 
-It was strongly inspired by I<dabbrev> feature in GNU Emacs.
+It was strongly inspired by I<dabbrev> feature in GNU Emacs and later by
+L<skeleton-complete|https://github.com/baohaojun/skeleton-complete> by Bao
+Haojun.
+
+For more advanced usage, see readme for I<skeleton-complete>.
+
+To undo the completion, just press the defined key a second time.
 
 =head1 USAGE
 
-Just press the defined key (default: Alt-slash) to complete the word at point.
+Just press the defined key (in the example above: Alt-slash) to complete the word at point.
 
-If you complete a word, type a space and then again try to complete a word, the
-word after the last match will be pasted there.
+=head1 ACKNOWLEDGMENTS
 
-=head1 TODO
-
-- multiple possible completion selection
+Thanks to Bao Haojun for the great idea of L<skeleton-complete|https://github.com/baohaojun/skeleton-complete>.
 
 =head1 COPYRIGHT
 
-Copyright (C) 2012  Wojciech Siewierski
+Copyright (C) 2012-2013  Wojciech Siewierski
 
 This program is free software: you can redistribute it and/or modify
 it under the terms of the GNU General Public License as published by

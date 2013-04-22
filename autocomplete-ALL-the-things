@@ -1,6 +1,6 @@
 #!/usr/bin/perl
 #########################################################################
-# Copyright (C) 2012  Wojciech Siewierski                               #
+# Copyright (C) 2012-2013  Wojciech Siewierski                          #
 #                                                                       #
 # This program is free software: you can redistribute it and/or modify  #
 # it under the terms of the GNU General Public License as published by  #
@@ -21,16 +21,31 @@ sub on_user_command {
     my ($self, $cmd) = @_;
 
     if ($cmd eq 'aAtt:complete') {
-        my ($row, $col) = $self->screen_cur;
-        my $toMatch = getCurrentWord($self, $row, $col);
-        if ($toMatch) {
-            my $comp = findMatchingWord($self, $toMatch, $row);
-            $self->tt_write($self->locale_encode($comp)) if $comp;
+        # if the last action was a completion, undo it
+        if (exists $self->{last_word}) {
+            replace_text($self, $self->{last_completion}, $self->{last_word});
+        } else {
+            my ($row, $col) = $self->screen_cur; # get cursor coordinates
+            my $word_to_complete = get_current_word($self, $row, $col); # read the word behind the cursor
+
+            if ($word_to_complete) {
+                my $completion = find_match($self, $word_to_complete, $row);
+                if ($completion) {
+                    # save the last completed word
+                    $self->{last_word}       = $word_to_complete;
+                    # save the last completion
+                    $self->{last_completion} = $completion;
+
+                    replace_text($self, $word_to_complete, $completion);
+                }
+            }
+            return 1;
         }
-        return 1;
-    } else {
-        delete $self->{aTtt_lastToMatch};
     }
+
+    # forget the last completion on any command other than aAtt:complete
+    delete $self->{last_word};
+    delete $self->{last_completion};
 
     ()
 }
@@ -38,42 +53,61 @@ sub on_user_command {
 sub on_key_press {
     my ($self, $event, $keysym) = @_;
 
-    if ($keysym <= 127 && $keysym != 0x20) { # if ASCII and not space
-        delete $self->{aTtt_lastToMatch};    # reset the memory
+    # forget the last completion when the user presses any ASCII key
+    if ($keysym <= 127) { # if ASCII
+        delete $self->{last_word};
+        delete $self->{last_completion};
     }
 
     ()
 }
 
-sub getCurrentWord {
+######################################################################
+
+sub replace_text {
+    my ($self, $current_text, $replacement) = @_;
+
+    # "press" backspace to erase the text; probably not portable
+    $self->tt_paste($self->locale_encode("" x length $current_text));
+
+    # print out the replacement
+    $self->tt_write($self->locale_encode($replacement));
+}
+
+######################################################################
+
+sub get_current_word {
     my ($self, $row, $col) = @_;
 
-    if (defined $self->{aTtt_lastToMatch}) {
-        $_ = substr($self->ROW_t($row),
-                    $self->{aTtt_lastToMatch},
-                    $col - $self->{aTtt_lastToMatch});
-        {
-            local $/ = ' ';                                        # remove the trailing space
-            chomp and $self->tt_write($self->locale_encode("")); # "press" backspace; not portable TODO
-        }
-    } else {
-        $_ = substr($self->ROW_t($row), 0, $col);
-        s/.*?(\w*)$/$1/;
-        $self->{aTtt_lastToMatch} = $col - length($_);
-    }
+    $_ = substr($self->ROW_t($row), 0, $col); # get the current line up to the cursor
+    s/.*?(\S*)$/$1/;                          # and read the last word from it
     return $_;
 }
 
-sub findMatchingWord {
-    my ($self, $toMatch, $row) = @_;
+######################################################################
 
-    for (my $n = 0; $n <= 2; ++$n) {
-        for (my $i = $row-1; $i >= 0; --$i) {
-            $_ = $self->ROW_t($i);
-            if (/\b${toMatch}\W{$n}\w/i) {
-                s/^.*?\b$toMatch(\W{$n}\w+).*$/$1/i;
-                return $_;
-            }
+# See: https://github.com/baohaojun/skeleton-complete
+sub skeleton_to_regex {
+    $_ = shift;
+
+    # sorry for this lispy code, I couldn't resist ;)
+    (join ".*?",
+     (map quotemeta,
+      (split //)))
+}
+
+######################################################################
+
+sub find_match {
+    my ($self, $word_to_match, $current_row) = @_;
+
+    my $regexp = skeleton_to_regex($word_to_match);
+
+    # iterate throughout all the rows starting with one above the cursor
+    for (my $i = $current_row-1; $i >= 0; --$i) {
+        $_ = $self->ROW_t($i);   # get the line of text from the row
+        if (/.*($regexp\w*)/i) { # and check if there is a match
+            return $1;
         }
     }
     return undef;
