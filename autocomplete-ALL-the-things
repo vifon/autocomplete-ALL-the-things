@@ -121,9 +121,12 @@ sub find_match {
 
         # check if there is a match
         # check only at the begining of a word
-        if (/.*\b($regexp\w*)/i
+        # \W used instead of \b to match between two non-word characters
+        if (
+            /.*\W($regexp\w*)/i
             or
-            /.*\s($regexp\w*)/i) {
+            /^($regexp\w*)/i    # corner case
+           ) {
             # save in which row was that match
             $self->{last_row} = $i;
             return $1;
