@@ -31,10 +31,13 @@ sub on_user_command {
                                get_current_word($self, $row, $col); # ...read the word behind the cursor
 
         if ($word_to_complete) {
+            # ignore the completed word itself
+            $self->{completed}{$word_to_complete} = 1;
+
             # continue the last search or start from the current row
             my $completion = find_match($self,
                                         $word_to_complete,
-                                        $self->{last_row} // $row,
+                                        $self->{next_row} // $row,
                                         $completion_function);
             if ($completion) {
                 # save the last completed word unless continuing the last search
@@ -139,8 +142,8 @@ sub find_match {
     my $regexp = $regex_modifier->($word_to_match);
 
     my $i;
-    # iterate throughout all the rows starting with one above the cursor or one above the last checked
-    for ($i = $current_row-1; $i >= 0; --$i) {
+    # search through all the rows starting with current one or one above the last checked
+    for ($i = $current_row; $i >= 0; --$i) {
         my $line = $self->ROW_t($i);   # get the line of text from the row
 
         $_ = $line;
@@ -154,8 +157,8 @@ sub find_match {
         push @{$self->{matches_in_row}}, $line =~ /^($regexp\w*)/i;
 
         if (@{$self->{matches_in_row}}) {
-            # save in which row was that match
-            $self->{last_row} = $i;
+            # remember which row should be searched next
+            $self->{next_row} = --$i;
             return skip_duplicates($self, $word_to_match, $i, $regex_modifier);
         }
     }
@@ -173,7 +176,7 @@ sub completion_history_cleanup {
 
     delete $self->{last_word};
     delete $self->{last_completion};
-    delete $self->{last_row};
+    delete $self->{next_row};
     delete $self->{matches_in_row};
     delete $self->{completed};
 }
