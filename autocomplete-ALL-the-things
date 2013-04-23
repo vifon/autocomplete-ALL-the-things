@@ -109,7 +109,7 @@ sub skeleton_to_regex {
 sub find_match {
     my ($self, $word_to_match, $current_row, $regex_modifier) = @_;
 
-    # cycle through all the matches in the current row
+    # cycle through all the matches in the current row if not starting a new search
     if (@{$self->{matches_in_row}}) {
         return pop @{$self->{matches_in_row}};
     }
@@ -123,13 +123,19 @@ sub find_match {
     my $i;
     # iterate throughout all the rows starting with one above the cursor or one above the last checked
     for ($i = $current_row-1; $i >= 0; --$i) {
-        $_ = $self->ROW_t($i);   # get the line of text from the row
+        my $line = $self->ROW_t($i);   # get the line of text from the row
+
+        $_ = $line;
 
         # check if there is a match
         # check only at the begining of a word
         # \W used instead of \b to match between two non-word characters
-        $self->{matches_in_row} = [ /\W($regexp\w*)/gi ];
-        unshift @{$self->{matches_in_row}}, /^($regexp\w*)/i; # corner case: match at the very beginning of line
+        my $match;
+        do {
+            ($_, $match) = /(.*\W)($regexp\w*)/i;
+            unshift @{$self->{matches_in_row}}, $match if $match;
+        } while ($match);
+        unshift @{$self->{matches_in_row}}, $line =~ /^($regexp\w*)/i; # corner case: match at the very beginning of line
         if (@{$self->{matches_in_row}}) {
             # save in which row was that match
             $self->{last_row} = $i;
