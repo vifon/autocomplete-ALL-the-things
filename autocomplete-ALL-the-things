@@ -106,12 +106,29 @@ sub skeleton_to_regex {
 
 ######################################################################
 
+sub skip_duplicates {
+    my ($self, $word_to_match, $current_row, $regex_modifier) = @_;
+
+    my $completion = shift @{$self->{matches_in_row}}; # get the rightmost one
+
+    # check for duplicates
+    if (exists $self->{completed}{$completion}) {
+        # skip this completion
+        return find_match($self, $word_to_match, $current_row, $regex_modifier);
+    } else {
+        $self->{completed}{$completion} = 1;
+        return $completion;
+    }
+}
+
+######################################################################
+
 sub find_match {
     my ($self, $word_to_match, $current_row, $regex_modifier) = @_;
 
     # cycle through all the matches in the current row if not starting a new search
     if (@{$self->{matches_in_row}}) {
-        return shift @{$self->{matches_in_row}};
+        return skip_duplicates($self, $word_to_match, $current_row, $regex_modifier);
     }
 
 
@@ -139,7 +156,7 @@ sub find_match {
         if (@{$self->{matches_in_row}}) {
             # save in which row was that match
             $self->{last_row} = $i;
-            return shift @{$self->{matches_in_row}}; # return the rightmost one
+            return skip_duplicates($self, $word_to_match, $current_row, $regex_modifier);
         }
     }
 
@@ -158,6 +175,7 @@ sub completion_history_cleanup {
     delete $self->{last_completion};
     delete $self->{last_row};
     delete $self->{matches_in_row};
+    delete $self->{completed};
 }
 
 ######################################################################
