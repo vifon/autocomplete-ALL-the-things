@@ -109,6 +109,12 @@ sub skeleton_to_regex {
 sub find_match {
     my ($self, $word_to_match, $current_row, $regex_modifier) = @_;
 
+    # cycle through all the matches in the current row
+    if (@{$self->{matches_in_row}}) {
+        return pop @{$self->{matches_in_row}};
+    }
+
+
     # default identity modifier
     $regex_modifier //= sub { shift; quotemeta };
 
@@ -122,14 +128,12 @@ sub find_match {
         # check if there is a match
         # check only at the begining of a word
         # \W used instead of \b to match between two non-word characters
-        if (
-            /.*\W($regexp\w*)/i
-            or
-            /^($regexp\w*)/i    # corner case
-           ) {
+        $self->{matches_in_row} = [ /\W($regexp\w*)/gi ];
+        unshift @{$self->{matches_in_row}}, /^($regexp\w*)/i; # corner case: match at the very beginning of line
+        if (@{$self->{matches_in_row}}) {
             # save in which row was that match
             $self->{last_row} = $i;
-            return $1;
+            return pop @{$self->{matches_in_row}}; # return the rightmost one
         }
     }
 
@@ -147,6 +151,7 @@ sub completion_history_cleanup {
     delete $self->{last_word};
     delete $self->{last_completion};
     delete $self->{last_row};
+    delete $self->{matches_in_row};
 }
 
 ######################################################################

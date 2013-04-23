@@ -44,7 +44,7 @@ Haojun.
 
 Just press the key bound to I<perl:aAtt:complete> (in the example above:
 Alt-Ctrl-slash) to complete the word at point. Subsequent uses cycle through
-other possible completions (for now only one per line).
+other possible completions.
 
 Key bound to I<perl:aAtt:undo> (Alt-Shift-quote) undoes the completion.
 
