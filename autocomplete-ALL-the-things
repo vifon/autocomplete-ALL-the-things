@@ -111,7 +111,7 @@ sub find_match {
 
     # cycle through all the matches in the current row if not starting a new search
     if (@{$self->{matches_in_row}}) {
-        return pop @{$self->{matches_in_row}};
+        return shift @{$self->{matches_in_row}};
     }
 
 
@@ -133,13 +133,13 @@ sub find_match {
         my $match;
         do {
             ($_, $match) = /(.*\W)($regexp\w*)/i;
-            unshift @{$self->{matches_in_row}}, $match if $match;
+            push @{$self->{matches_in_row}}, $match if $match;
         } while ($match);
-        unshift @{$self->{matches_in_row}}, $line =~ /^($regexp\w*)/i; # corner case: match at the very beginning of line
+        push @{$self->{matches_in_row}}, $line =~ /^($regexp\w*)/i; # corner case: match at the very beginning of line
         if (@{$self->{matches_in_row}}) {
             # save in which row was that match
             $self->{last_row} = $i;
-            return pop @{$self->{matches_in_row}}; # return the rightmost one
+            return shift @{$self->{matches_in_row}}; # return the rightmost one
         }
     }
 
