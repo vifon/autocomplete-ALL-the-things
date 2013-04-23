@@ -156,7 +156,7 @@ sub find_match {
         if (@{$self->{matches_in_row}}) {
             # save in which row was that match
             $self->{last_row} = $i;
-            return skip_duplicates($self, $word_to_match, $current_row, $regex_modifier);
+            return skip_duplicates($self, $word_to_match, $i, $regex_modifier);
         }
     }
 
