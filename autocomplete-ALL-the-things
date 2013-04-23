@@ -87,8 +87,8 @@ sub replace_text {
 sub get_current_word {
     my ($self, $row, $col) = @_;
 
-    $_ = substr($self->ROW_t($row), 0, $col); # get the current line up to the cursor
-    s/.*?(\S*)$/$1/;                          # and read the last word from it
+    $_ = substr($self->ROW_t($row), 0, $col); # get the current line up to the cursor...
+    s/.*?(\S*)$/$1/;                          # ...and read the last word from it
     return $_;
 }
 
@@ -108,6 +108,7 @@ sub skeleton_to_regex {
 
 sub skip_duplicates {
     my ($self, $word_to_match, $current_row, $regex_modifier) = @_;
+    # arguments needed for find_match tail recursion
 
     my $completion = shift @{$self->{matches_in_row}}; # get the rightmost one
 
@@ -144,15 +145,14 @@ sub find_match {
 
         $_ = $line;
 
-        # check if there is a match
+        # find all the matches in the current line
         # check only at the begining of a word
         # \W used instead of \b to match between two non-word characters
         my $match;
-        do {
-            ($_, $match) = /(.*\W)($regexp\w*)/i;
-            push @{$self->{matches_in_row}}, $match if $match;
-        } while ($match);
-        push @{$self->{matches_in_row}}, $line =~ /^($regexp\w*)/i; # corner case: match at the very beginning of line
+        push @{$self->{matches_in_row}}, $match while ($_, $match) = /(.*\W)($regexp\w*)/i;
+        # corner case: match at the very beginning of line
+        push @{$self->{matches_in_row}}, $line =~ /^($regexp\w*)/i;
+
         if (@{$self->{matches_in_row}}) {
             # save in which row was that match
             $self->{last_row} = $i;
