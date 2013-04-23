@@ -20,17 +20,35 @@
 sub on_user_command {
     my ($self, $cmd) = @_;
 
-    if ($cmd eq 'aAtt:complete' or $cmd eq 'aAtt:skeleton-complete') {
+    if ($cmd eq 'aAtt:complete' or
+        $cmd eq 'aAtt:skeleton-complete' or
+        $cmd eq 'aAtt:skeleton-word-complete') {
+
+        # transforms the completed word into a regex matching the completions
         my $completion_function;
+
+        # character before each match
         my $separator;
+
+        # regex matching every character in the completed word
+        my $char_class_to_complete;
+
         if ($cmd eq 'aAtt:skeleton-complete') {
-            $completion_function = \&skeleton_to_regex;
-            $separator           = '\W'; # \W used instead of \b to match between two non-word characters
+            $completion_function = skeleton_to_regex('.*?');
+            # \W used instead of \b to match between two non-word characters
+            $separator              = '\W';
+            $char_class_to_complete = '\S';
+        } elsif ($cmd eq 'aAtt:skeleton-word-complete') {
+            $completion_function = skeleton_to_regex('\w*');
         }
 
+
         my ($row, $col) = $self->screen_cur; # get cursor coordinates
-        my $word_to_complete = $self->{last_word} // # use the last used word or...
-                               get_current_word($self, $row, $col); # ...read the word behind the cursor
+
+        # use the last used word or read the word behind the cursor
+        my $word_to_complete = $self->{last_word} //
+                               get_current_word($self, $row, $col,
+                                                $char_class_to_complete);
 
         if ($word_to_complete) {
             # ignore the completed word itself
@@ -91,10 +109,12 @@ sub replace_text {
 ######################################################################
 
 sub get_current_word {
-    my ($self, $row, $col) = @_;
+    my ($self, $row, $col, $char_class) = @_;
+
+    $char_class //= '\w';
 
     $_ = substr($self->ROW_t($row), 0, $col); # get the current line up to the cursor...
-    s/.*?(\S*)$/$1/;                          # ...and read the last word from it
+    s/.*?($char_class*)$/$1/;                          # ...and read the last word from it
     return $_;
 }
 
@@ -102,12 +122,16 @@ sub get_current_word {
 
 # See: https://github.com/baohaojun/skeleton-complete
 sub skeleton_to_regex {
-    $_ = shift;
+    my $regex_between = shift;
 
-    # sorry for this lispy code, I couldn't resist ;)
-    (join ".*?",
-     (map quotemeta,
-      (split //)))
+    sub {
+        $_ = shift;
+
+        # sorry for this lispy code, I couldn't resist ;)
+        (join "$regex_between",
+         (map quotemeta,
+          (split //)))
+    }
 }
 
 ######################################################################

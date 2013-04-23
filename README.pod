@@ -2,7 +2,7 @@
 
 =head1 NAME
 
-autocomplete-ALL-the-things - an urxvt plugin allowing user to easily complete words
+autocomplete-ALL-the-things - an urxvt plugin allowing user to easily complete arbitrary text
 
 =head1 INSTALLATION
 
@@ -40,18 +40,43 @@ It was strongly inspired by I<dabbrev> feature in GNU Emacs and later by
 L<skeleton-complete|https://github.com/baohaojun/skeleton-complete> by Bao
 Haojun.
 
-=head1 USAGE
+=head1 BASIC USAGE
 
-Just press the key bound to I<perl:aAtt:complete> (in the example above:
+Just press the key bound to I<aAtt:complete> (in the example above:
 Alt-Ctrl-slash) to complete the word at point. Subsequent uses cycle through
 other possible completions.
 
-Key bound to I<perl:aAtt:undo> (Alt-Shift-quote) undoes the completion.
+Key bound to I<aAtt:undo> (Alt-Shift-quote) undoes the completion.
 
-For more advanced completions use I<perl:aAtt:skeleton-complete>
-(Alt-Shift-slash). It's behavior is inspired by I<skeleton-complete>, please see
-L<its readme|http://baohaojun.github.io/skeleton-complete.html#sec-2-3> for an
-explanation.
+=head1 ADVANCED USAGE
+
+For more advanced completions use I<aAtt:skeleton-word-complete>
+(Alt-Shift-slash) and I<aAtt:skeleton-complete>. It's behavior is inspired by
+L<skeleton-complete|https://github.com/baohaojun/skeleton-complete>, please see
+L<its readme|http://baohaojun.github.io/skeleton-complete.html> for a more
+detailed explanation.
+
+=head2 AVAILABLE FUNCTIONS
+
+=over 12
+
+=item * I<aAtt:complete>
+
+classical prefix-based completion
+
+=item * I<aAtt:skeleton-word-complete>
+
+skeleton-based completion for words
+
+=item * I<aAtt:skeleton-complete>
+
+skeleton-based completion for arbitrary strings
+
+=item * I<aAtt:undo>
+
+undo the completion (must be used right after a completion)
+
+=back
 
 =head1 ACKNOWLEDGMENTS
 
