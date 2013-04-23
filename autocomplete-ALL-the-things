@@ -22,8 +22,10 @@ sub on_user_command {
 
     if ($cmd eq 'aAtt:complete' or $cmd eq 'aAtt:skeleton-complete') {
         my $completion_function;
+        my $separator;
         if ($cmd eq 'aAtt:skeleton-complete') {
             $completion_function = \&skeleton_to_regex;
+            $separator           = '\W'; # \W used instead of \b to match between two non-word characters
         }
 
         my ($row, $col) = $self->screen_cur; # get cursor coordinates
@@ -38,7 +40,8 @@ sub on_user_command {
             my $completion = find_match($self,
                                         $word_to_complete,
                                         $self->{next_row} // $row,
-                                        $completion_function);
+                                        $completion_function,
+                                        $separator);
             if ($completion) {
                 # save the last completed word unless continuing the last search
                 $self->{last_word} //= $word_to_complete;
@@ -110,7 +113,7 @@ sub skeleton_to_regex {
 ######################################################################
 
 sub skip_duplicates {
-    my ($self, $word_to_match, $current_row, $regex_modifier) = @_;
+    my ($self, $word_to_match, $current_row, $regex_modifier, $separator) = @_;
     # arguments needed for find_match tail recursion
 
     my $completion = shift @{$self->{matches_in_row}}; # get the rightmost one
@@ -118,7 +121,7 @@ sub skip_duplicates {
     # check for duplicates
     if (exists $self->{completed}{$completion}) {
         # skip this completion
-        return find_match($self, $word_to_match, $current_row, $regex_modifier);
+        return find_match($self, $word_to_match, $current_row, $regex_modifier, $separator);
     } else {
         $self->{completed}{$completion} = 1;
         return $completion;
@@ -128,16 +131,17 @@ sub skip_duplicates {
 ######################################################################
 
 sub find_match {
-    my ($self, $word_to_match, $current_row, $regex_modifier) = @_;
+    my ($self, $word_to_match, $current_row, $regex_modifier, $separator) = @_;
 
     # cycle through all the matches in the current row if not starting a new search
     if (@{$self->{matches_in_row}}) {
-        return skip_duplicates($self, $word_to_match, $current_row, $regex_modifier);
+        return skip_duplicates($self, $word_to_match, $current_row, $regex_modifier, $separator);
     }
 
 
     # default identity modifier
     $regex_modifier //= sub { quotemeta shift };
+    $separator        = '\b';
 
     my $regexp = $regex_modifier->($word_to_match);
 
@@ -149,17 +153,15 @@ sub find_match {
         $_ = $line;
 
         # find all the matches in the current line
-        # check only at the begining of a word
-        # \W used instead of \b to match between two non-word characters
         my $match;
-        push @{$self->{matches_in_row}}, $match while ($_, $match) = /(.*\W)($regexp\w*)/i;
+        push @{$self->{matches_in_row}}, $match while ($_, $match) = /(.*$separator)($regexp\w*)/i;
         # corner case: match at the very beginning of line
         push @{$self->{matches_in_row}}, $line =~ /^($regexp\w*)/i;
 
         if (@{$self->{matches_in_row}}) {
             # remember which row should be searched next
             $self->{next_row} = --$i;
-            return skip_duplicates($self, $word_to_match, $i, $regex_modifier);
+            return skip_duplicates($self, $word_to_match, $i, $regex_modifier, $separator);
         }
     }
 
