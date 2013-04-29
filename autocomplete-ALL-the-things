@@ -156,6 +156,7 @@ sub skip_duplicates {
 
 sub find_match {
     my ($self, $word_to_match, $current_row, $regex_modifier, $separator) = @_;
+    $self->{matches_in_row} //= [];
 
     # cycle through all the matches in the current row if not starting a new search
     if (@{$self->{matches_in_row}}) {
