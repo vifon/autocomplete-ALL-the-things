@@ -138,16 +138,15 @@ sub skeleton_to_regex {
 
 ######################################################################
 
+# WARNING: supply all the arguments needed by find_match!
 sub skip_duplicates {
-    my ($self, $word_to_match, $current_row, $regex_modifier, $separator, $word_char) = @_;
-    # arguments needed for find_match tail recursion
-
+    my $self = $_[0];
     my $completion = shift @{$self->{matches_in_row}}; # get the rightmost one
 
     # check for duplicates
     if (exists $self->{completed}{$completion}) {
         # skip this completion
-        return find_match($self, $word_to_match, $current_row, $regex_modifier, $separator, $word_char);
+        return find_match(@_);
     } else {
         $self->{completed}{$completion} = 1;
         return $completion;
@@ -177,13 +176,21 @@ sub find_match {
 
         # find all the matches in the current line
         my $match;
-        push @{$self->{matches_in_row}}, $match while ($_, $match) = /(.*${separator})(${regexp}${word_char}*)/i;
+        push @{$self->{matches_in_row}}, $match while ($_, $match) = /
+                                                                         (.*${separator})
+                                                                         (
+                                                                             ${regexp}
+                                                                             ${word_char}*
+                                                                         )
+                                                                     /ix;
         # corner case: match at the very beginning of line
         push @{$self->{matches_in_row}}, $line =~ /^($regexp\w*)/i;
 
         if (@{$self->{matches_in_row}}) {
             # remember which row should be searched next
             $self->{next_row} = --$i;
+
+            # arguments needed for find_match tail recursion
             return skip_duplicates($self, $word_to_match, $i, $regex_modifier, $separator, $word_char);
         }
     }
