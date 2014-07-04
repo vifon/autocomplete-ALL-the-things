@@ -20,9 +20,13 @@
 sub on_user_command {
     my ($self, $cmd) = @_;
 
+    $self->{completion_used} = 0;
+
     if ($cmd eq 'aAtt:complete' or
         $cmd eq 'aAtt:skeleton-complete' or
         $cmd eq 'aAtt:skeleton-word-complete') {
+
+        $self->selection_clear();
 
         # transforms the completed word into a regex matching the completions
         my $completion_function = sub { quotemeta shift }; # identity
@@ -95,6 +99,11 @@ sub on_key_press {
         completion_history_cleanup($self);
     }
 
+    if ($self->{completion_used} == 1) {
+        $self->{completion_used} = 0;
+        $self->selection_clear();
+    }
+
     ()
 }
 
@@ -141,14 +150,27 @@ sub skeleton_to_regex {
 # WARNING: supply all the arguments needed by find_match!
 sub skip_duplicates {
     my $self = $_[0];
-    my $completion = shift @{$self->{matches_in_row}}; # get the rightmost one
+    my @item = @{shift @{$self->{matches_in_row}}}; # get the rightmost one
+    my $completion = @item[0];
+    my $linenum = @item[1];
 
     # check for duplicates
     if (exists $self->{completed}{$completion}) {
         # skip this completion
         return find_match(@_);
     } else {
+        my $line = $self->ROW_t($linenum);
+        my $re = quotemeta $completion;
+
+        $line =~ /$re/;
+        $self->selection_beg($linenum, $-[0]);
+        $self->selection_end($linenum, $+[0]);
+        $self->selection_make(0);
+
         $self->{completed}{$completion} = 1;
+
+        $self->{completion_used} = 1;
+
         return $completion;
     }
 }
@@ -176,7 +198,7 @@ sub find_match {
 
         # find all the matches in the current line
         my $match;
-        push @{$self->{matches_in_row}}, $match while ($_, $match) = /
+        push @{$self->{matches_in_row}}, [$match, $i] while ($_, $match) = /
                                                                          (.*${separator})
                                                                          (
                                                                              ${regexp}
@@ -184,7 +206,9 @@ sub find_match {
                                                                          )
                                                                      /ix;
         # corner case: match at the very beginning of line
-        push @{$self->{matches_in_row}}, $line =~ /^($regexp\w*)/i;
+        if ($line =~ /^($regexp\w*)/i) {
+            push @{$self->{matches_in_row}}, [$&, $i];
+        }
 
         if (@{$self->{matches_in_row}}) {
             # remember which row should be searched next
