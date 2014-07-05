@@ -24,8 +24,6 @@ sub on_user_command {
         $cmd eq 'aAtt:skeleton-complete' or
         $cmd eq 'aAtt:skeleton-word-complete') {
 
-        clear_highlight($self);
-
         # transforms the completed word into a regex matching the completions
         my $completion_function = sub { quotemeta shift }; # identity
 
@@ -101,10 +99,7 @@ sub on_key_press {
         completion_history_cleanup($self);
     }
 
-    if (exists $self->{completion_used}) {
-        delete $self->{completion_used};
-        clear_highlight($self);
-    }
+    clear_highlight($self);
 
     ()
 }
@@ -173,18 +168,16 @@ sub highlight_match {
     my $re = quotemeta $completion;
 
     $line =~ /$re/;
-    $self->selection_beg($linenum, $-[0]);
-    $self->selection_end($linenum, $+[0]);
-    $self->selection_make(0);
 
-    $self->{completion_used} = 1;
+    $self->{overlay} = $self->overlay($-[0], $linenum, length($completion), 1, urxvt::OVERLAY_RSTYLE, 0);
+    $self->{overlay}->set(0, 0, $self->special_encode($completion));
 }
 
 ######################################################################
 
 sub clear_highlight {
     my $self = shift;
-    $self->selection_clear();
+    delete $self->{overlay};
 }
 
 ######################################################################
@@ -245,7 +238,6 @@ sub completion_history_cleanup {
     delete $self->{next_row};
     delete $self->{matches_in_row};
     delete $self->{completed};
-    delete $self->{completion_used};
     clear_highlight($self);
 }
 
