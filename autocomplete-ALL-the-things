@@ -72,6 +72,10 @@ sub on_user_command {
                              $self->{last_completion} // $word_to_complete,
                              $completion);
                 $self->{last_completion} = $completion;
+
+                highlight_match($self,
+                                $self->{next_row}+1,
+                                $completion);
             }
         }
         return 1;
@@ -94,6 +98,8 @@ sub on_key_press {
     if ($keysym <= 127) { # if ASCII
         completion_history_cleanup($self);
     }
+
+    clear_highlight($self);
 
     ()
 }
@@ -155,6 +161,27 @@ sub skip_duplicates {
 
 ######################################################################
 
+sub highlight_match {
+    my ($self, $linenum, $completion) = @_;
+
+    my $line = $self->ROW_t($linenum);
+    my $re = quotemeta $completion;
+
+    $line =~ /$re/;
+
+    $self->{overlay} = $self->overlay($-[0], $linenum, length($completion), 1, urxvt::OVERLAY_RSTYLE, 0);
+    $self->{overlay}->set(0, 0, $self->special_encode($completion));
+}
+
+######################################################################
+
+sub clear_highlight {
+    my $self = shift;
+    delete $self->{overlay};
+}
+
+######################################################################
+
 sub find_match {
     my ($self, $word_to_match, $current_row, $regex_modifier, $separator, $word_char) = @_;
     $self->{matches_in_row} //= [];
@@ -184,7 +211,7 @@ sub find_match {
                                                                          )
                                                                      /ix;
         # corner case: match at the very beginning of line
-        push @{$self->{matches_in_row}}, $line =~ /^($regexp\w*)/i;
+        push @{$self->{matches_in_row}}, $1 if $line =~ /^($regexp\w*)/i;
 
         if (@{$self->{matches_in_row}}) {
             # remember which row should be searched next
@@ -211,6 +238,7 @@ sub completion_history_cleanup {
     delete $self->{next_row};
     delete $self->{matches_in_row};
     delete $self->{completed};
+    clear_highlight($self);
 }
 
 ######################################################################
