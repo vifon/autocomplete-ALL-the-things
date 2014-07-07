@@ -21,6 +21,7 @@ sub on_user_command {
     my ($self, $cmd) = @_;
 
     if ($cmd eq 'aAtt:complete' or
+        $cmd eq 'aAtt:WORD-complete' or
         $cmd eq 'aAtt:skeleton-complete' or
         $cmd eq 'aAtt:skeleton-word-complete') {
 
@@ -43,8 +44,11 @@ sub on_user_command {
             $char_class_to_complete = '\S';
         } elsif ($cmd eq 'aAtt:skeleton-word-complete') {
             $completion_function = skeleton_to_regex('[-\w]*');
+        } elsif ($cmd eq 'aAtt:WORD-complete') {
+            $word_char = '\S';
+            $separator = '\s';
+            $char_class_to_complete = '\S';
         }
-
 
         my ($row, $col) = $self->screen_cur; # get cursor coordinates
 
@@ -211,7 +215,7 @@ sub find_match {
                                                                          )
                                                                      /ix;
         # corner case: match at the very beginning of line
-        push @{$self->{matches_in_row}}, $1 if $line =~ /^($regexp\w*)/i;
+        push @{$self->{matches_in_row}}, $1 if $line =~ /^($regexp$word_char*)/i;
 
         if (@{$self->{matches_in_row}}) {
             # remember which row should be searched next
