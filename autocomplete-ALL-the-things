@@ -110,61 +110,6 @@ sub on_key_press {
 
 ######################################################################
 
-sub replace_text {
-    my ($self, $current_text, $replacement) = @_;
-
-    # "press" backspace to erase the text; probably not portable
-    $self->tt_paste($self->locale_encode(chr(0x7F) x length $current_text));
-
-    # print out the replacement
-    $self->tt_write($self->locale_encode($replacement));
-}
-
-######################################################################
-
-sub get_current_word {
-    my ($self, $row, $col, $char_class) = @_;
-
-    $_ = substr($self->ROW_t($row), 0, $col); # get the current line up to the cursor...
-    s/.*?($char_class*)$/$1/;                          # ...and read the last word from it
-    return $_;
-}
-
-######################################################################
-
-# See: https://github.com/baohaojun/skeleton-complete
-sub skeleton_to_regex {
-    my $regex_between = shift;
-
-    sub {
-        $_ = shift;
-
-        # sorry for this lispy code, I couldn't resist ;)
-        (join "$regex_between",
-         (map quotemeta,
-          (split //)))
-    }
-}
-
-######################################################################
-
-# WARNING: supply all the arguments needed by find_match!
-sub skip_duplicates {
-    my $self = $_[0];
-    my $completion = shift @{$self->{matches_in_row}}; # get the rightmost one
-
-    # check for duplicates
-    if (exists $self->{completed}{$completion}) {
-        # skip this completion
-        return find_match(@_);
-    } else {
-        $self->{completed}{$completion} = 1;
-        return $completion;
-    }
-}
-
-######################################################################
-
 sub highlight_match {
     my ($self, $linenum, $completion) = @_;
 
@@ -210,6 +155,71 @@ sub clear_highlight {
 
 ######################################################################
 
+sub replace_text {
+    my ($self, $current_text, $replacement) = @_;
+
+    # "press" backspace to erase the text; probably not portable
+    $self->tt_paste($self->locale_encode(chr(0x7F) x length $current_text));
+
+    # print out the replacement
+    $self->tt_write($self->locale_encode($replacement));
+}
+
+######################################################################
+
+sub get_current_word {
+    my ($self, $row, $col, $char_class) = @_;
+
+    $_ = substr($self->ROW_t($row), 0, $col); # get the current line up to the cursor...
+    s/.*?($char_class*)$/$1/;                 # ...and read the last word from it
+    return $_;
+}
+
+######################################################################
+
+# Returns a function that takes a string and returns that string with
+# this function's argument inserted between its every two characters.
+# The resulting string is used as a regular expression matching the
+# completion candidates.
+sub skeleton_to_regex {
+    my $regex_between = shift;
+
+    sub {
+        $_ = shift;
+
+        # sorry for this lispy code, I couldn't resist ;)
+        (join "$regex_between",
+         (map quotemeta,
+          (split //)))
+    }
+}
+
+######################################################################
+
+# Checks whether the completion found by find_match() was already
+# found and if it was, calls find_match() again to find the next
+# completion.
+#
+# Takes all the arguments that find_match() would take, to make a
+# mutualy recursive call.
+sub skip_duplicates {
+    my $self = $_[0];
+    my $completion = shift @{$self->{matches_in_row}}; # get the rightmost one
+
+    # check for duplicates
+    if (exists $self->{completed}{$completion}) {
+        # skip this completion
+        return find_match(@_);
+    } else {
+        $self->{completed}{$completion} = 1;
+        return $completion;
+    }
+}
+
+######################################################################
+
+# Finds the next matching completion in the row current row or above
+# while skipping duplicates using skip_duplicates().
 sub find_match {
     my ($self, $word_to_match, $current_row, $regex_modifier, $separator, $word_char) = @_;
     $self->{matches_in_row} //= [];
@@ -245,7 +255,7 @@ sub find_match {
             # remember which row should be searched next
             $self->{next_row} = --$i;
 
-            # arguments needed for find_match tail recursion
+            # arguments needed for find_match() mutual recursion
             return skip_duplicates($self, $word_to_match, $i, $regex_modifier, $separator, $word_char);
         }
     }
