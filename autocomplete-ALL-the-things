@@ -37,12 +37,15 @@ sub on_user_command {
         #   $fun = skeleton_to_regex(".*");
         #   $fun->("foo");
         # would return "f.*o.*o"
+        #
+        # In other words, indirectly decides which characters can
+        # appear in the completion.
         my $completion_function;
 
         # A regular expression matching a character before each match.
         # For example, it you want to match the text after a
         # whitespace, set it to "\s".
-        my $separator;
+        my $char_class_before;
 
         # A regular expression matching every character in the entered
         # text that will be used to find matching completions. Usually
@@ -51,48 +54,54 @@ sub on_user_command {
 
         # A regular expression matching every allowed last character
         # of the completion (uses greedy matching).
-        my $word_char;
+        my $char_class_at_end;
 
         if ($cmd eq 'word-complete') {
-            $completion_function = sub { quotemeta shift }; # identity
-            $separator = '[^-\w]';
-            $word_char = '[-\w]';
+            # Basic word completion. Completes the current word
+            # without any special matching.
+            $char_class_before      = '[^-\w]';
+            $completion_function    = sub { quotemeta shift }; # identity
+            $char_class_at_end      = '[-\w]';
             $char_class_to_complete = '[-\w]';
         } elsif ($cmd eq 'WORD-complete') {
-            $completion_function = sub { quotemeta shift };
-            $word_char = '\S';
-            $separator = '\s';
+            # The same as above but in the Vim meaning of a "WORD" --
+            # whitespace delimited.
+            $char_class_before      = '\s';
+            $completion_function    = sub { quotemeta shift };
+            $char_class_at_end      = '\S';
             $char_class_to_complete = '\S';
         } elsif ($cmd eq 'skeleton-word-complete') {
-            $completion_function = skeleton_to_regex('[-\w]*');
-            $separator = '[^-\w]';
-            $word_char = '[-\w]';
+            # Fuzzy completion of the current word.
+            $char_class_before      = '[^-\w]';
+            $completion_function    = skeleton_to_regex('[-\w]*');
+            $char_class_at_end      = '[-\w]';
             $char_class_to_complete = '[-\w]';
         } elsif ($cmd eq 'skeleton-complete') {
-            $completion_function = skeleton_to_regex('.*?');
-            $word_char              = '\w';
-            $separator              = '\W';
+            # Fuzzy completion of an arbitrary text.
+            $char_class_before      = '\W';
+            $completion_function    = skeleton_to_regex('.*?');
+            $char_class_at_end      = '\w';
             $char_class_to_complete = '\S';
         }
 
-        my ($row, $col) = $self->screen_cur; # get cursor coordinates
+        my ($row, $col) = $self->screen_cur(); # get cursor coordinates
 
         # use the last used word or read the word behind the cursor
         my $word_to_complete = $self->{last_word} //
-                               get_current_word($self, $row, $col,
-                                                $char_class_to_complete);
+                               read_word_at_coord($self, $row, $col,
+                                                  $char_class_to_complete);
 
         if ($word_to_complete) {
             # ignore the completed word itself
-            $self->{completed}{$word_to_complete} = 1;
+            $self->{already_completed}{$word_to_complete} = 1;
 
             # continue the last search or start from the current row
             my $completion = find_match($self,
                                         $word_to_complete,
                                         $self->{next_row} // $row,
                                         $completion_function,
-                                        $separator,
-                                        $word_char);
+                                        $char_class_before,
+                                        $char_class_at_end);
             if ($completion) {
                 # save the last completed word unless continuing the last search
                 $self->{last_word} //= $word_to_complete;
@@ -188,7 +197,7 @@ sub replace_text {
 
 ######################################################################
 
-sub get_current_word {
+sub read_word_at_coord {
     my ($self, $row, $col, $char_class) = @_;
 
     $_ = substr($self->ROW_t($row), 0, $col); # get the current line up to the cursor...
@@ -228,11 +237,11 @@ sub skip_duplicates {
     my $completion = shift @{$self->{matches_in_row}}; # get the rightmost one
 
     # check for duplicates
-    if (exists $self->{completed}{$completion}) {
+    if (exists $self->{already_completed}{$completion}) {
         # skip this completion
         return find_match(@_);
     } else {
-        $self->{completed}{$completion} = 1;
+        $self->{already_completed}{$completion} = 1;
         return $completion;
     }
 }
@@ -242,12 +251,12 @@ sub skip_duplicates {
 # Finds the next matching completion in the row current row or above
 # while skipping duplicates using skip_duplicates().
 sub find_match {
-    my ($self, $word_to_match, $current_row, $regex_modifier, $separator, $word_char) = @_;
+    my ($self, $word_to_match, $current_row, $regex_modifier, $char_class_before, $char_class_at_end) = @_;
     $self->{matches_in_row} //= [];
 
     # cycle through all the matches in the current row if not starting a new search
     if (@{$self->{matches_in_row}}) {
-        return skip_duplicates($self, $word_to_match, $current_row, $regex_modifier, $separator, $word_char);
+        return skip_duplicates($self, $word_to_match, $current_row, $regex_modifier, $char_class_before, $char_class_at_end);
     }
 
 
@@ -263,21 +272,21 @@ sub find_match {
         # find all the matches in the current line
         my $match;
         push @{$self->{matches_in_row}}, $match while ($_, $match) = /
-                                                                         (.*${separator})
+                                                                         (.*${char_class_before})
                                                                          (
                                                                              ${regexp}
-                                                                             ${word_char}*
+                                                                             ${char_class_at_end}*
                                                                          )
                                                                      /ix;
         # corner case: match at the very beginning of line
-        push @{$self->{matches_in_row}}, $1 if $line->t =~ /^($regexp$word_char*)/i;
+        push @{$self->{matches_in_row}}, $1 if $line->t =~ /^($regexp$char_class_at_end*)/i;
 
         if (@{$self->{matches_in_row}}) {
             # remember which row should be searched next
             $self->{next_row} = --$i;
 
             # arguments needed for find_match() mutual recursion
-            return skip_duplicates($self, $word_to_match, $i, $regex_modifier, $separator, $word_char);
+            return skip_duplicates($self, $word_to_match, $i, $regex_modifier, $char_class_before, $char_class_at_end);
         }
     }
 
@@ -296,7 +305,7 @@ sub completion_history_cleanup {
     delete $self->{last_completion};
     delete $self->{next_row};
     delete $self->{matches_in_row};
-    delete $self->{completed};
+    delete $self->{already_completed};
     clear_highlight($self);
 }
 
