@@ -99,7 +99,7 @@ sub on_user_command {
             my $completion = find_match($self,
                                         $word_to_complete,
                                         $self->{next_row} // $row,
-                                        $completion_function,
+                                        $completion_function->($word_to_complete),
                                         $char_class_before,
                                         $char_class_at_end);
             if ($completion) {
@@ -251,16 +251,14 @@ sub skip_duplicates {
 # Finds the next matching completion in the row current row or above
 # while skipping duplicates using skip_duplicates().
 sub find_match {
-    my ($self, $word_to_match, $current_row, $regex_modifier, $char_class_before, $char_class_at_end) = @_;
+    my ($self, $word_to_match, $current_row, $regexp, $char_class_before, $char_class_at_end) = @_;
     $self->{matches_in_row} //= [];
 
     # cycle through all the matches in the current row if not starting a new search
     if (@{$self->{matches_in_row}}) {
-        return skip_duplicates($self, $word_to_match, $current_row, $regex_modifier, $char_class_before, $char_class_at_end);
+        return skip_duplicates($self, $word_to_match, $current_row, $regexp, $char_class_before, $char_class_at_end);
     }
 
-
-    my $regexp = $regex_modifier->($word_to_match);
 
     my $i;
     # search through all the rows starting with current one or one above the last checked
@@ -286,7 +284,7 @@ sub find_match {
             $self->{next_row} = --$i;
 
             # arguments needed for find_match() mutual recursion
-            return skip_duplicates($self, $word_to_match, $i, $regex_modifier, $char_class_before, $char_class_at_end);
+            return skip_duplicates($self, $word_to_match, $i, $regexp, $char_class_before, $char_class_at_end);
         }
     }
 
