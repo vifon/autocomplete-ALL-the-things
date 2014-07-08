@@ -54,6 +54,7 @@ Available functions
 
 * `aAtt:complete` -- classical prefix-based completion
 * `aAtt:skeleton-word-complete` -- skeleton-based completion for words
+* `aAtt:skeleton-WORD-complete` -- skeleton-based completion for WORDS (in the Vim meaning)
 * `aAtt:skeleton-complete` -- skeleton-based completion for arbitrary strings
 * `aAtt:undo` -- undo the completion (must be used right after a completion)
 
