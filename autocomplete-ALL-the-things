@@ -168,20 +168,44 @@ sub skip_duplicates {
 sub highlight_match {
     my ($self, $linenum, $completion) = @_;
 
-    my $line = $self->ROW_t($linenum);
+    clear_highlight($self);
+
+    my $line = $self->line($linenum);
     my $re = quotemeta $completion;
 
-    $line =~ /$re/;
+    $line->t =~ /$re/;
 
-    $self->{overlay} = $self->overlay($-[0], $linenum, length($completion), 1, urxvt::OVERLAY_RSTYLE, 0);
-    $self->{overlay}->set(0, 0, $self->special_encode($completion));
+    my ($sl, $sc) = $line->coord_of($-[0]);
+    my ($el, $ec) = $line->coord_of($+[0]);
+
+    $self->{highlight} = [$sl, $sc, $el, $ec];
+
+    $self->want_refresh();
+}
+
+sub on_refresh_begin {
+    my ($self) = @_;
+
+    if (!$self->{highlighted} && $self->{highlight}) {
+        my ($sl, $sc, $el, $ec) = @{$self->{highlight}};
+        $self->scr_xor_span($sl, $sc, $el, $ec, urxvt::RS_RVid);
+
+        $self->{highlighted} = 1
+    }
 }
 
 ######################################################################
 
 sub clear_highlight {
     my $self = shift;
-    delete $self->{overlay};
+
+    if ($self->{highlighted}) {
+        my ($sl, $sc, $el, $ec) = @{$self->{highlight}};
+        $self->scr_xor_span($sl, $sc, $el, $ec, urxvt::RS_RVid);
+
+        delete $self->{highlight};
+        delete $self->{highlighted};
+    }
 }
 
 ######################################################################
