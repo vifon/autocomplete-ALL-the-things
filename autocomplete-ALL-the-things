@@ -168,20 +168,44 @@ sub skip_duplicates {
 sub highlight_match {
     my ($self, $linenum, $completion) = @_;
 
-    my $line = $self->ROW_t($linenum);
+    clear_highlight($self);
+
+    my $line = $self->line($linenum);
     my $re = quotemeta $completion;
 
-    $line =~ /$re/;
+    $line->t =~ /$re/;
 
-    $self->{overlay} = $self->overlay($-[0], $linenum, length($completion), 1, urxvt::OVERLAY_RSTYLE, 0);
-    $self->{overlay}->set(0, 0, $self->special_encode($completion));
+    my ($sl, $sc) = $line->coord_of($-[0]);
+    my ($el, $ec) = $line->coord_of($+[0]);
+
+    $self->{highlight} = [$sl, $sc, $el, $ec];
+}
+
+sub on_refresh_begin {
+    my ($self) = @_;
+
+    clear_highlight($self);
+
+    if ($self->{highlight}) {
+        my ($sl, $sc, $el, $ec) = @{$self->{highlight}};
+        $self->scr_xor_span($sl, $sc, $el, $ec, urxvt::RS_RVid);
+
+        $self->{highlighted} = 1
+    }
 }
 
 ######################################################################
 
 sub clear_highlight {
     my $self = shift;
-    delete $self->{overlay};
+
+    if ($self->{highlighted}) {
+        my ($sl, $sc, $el, $ec) = @{$self->{highlight}};
+        $self->scr_xor_span($sl, $sc, $el, $ec, urxvt::RS_RVid);
+
+        delete $self->{highlight};
+        delete $self->{highlighted};
+    }
 }
 
 ######################################################################
@@ -201,9 +225,9 @@ sub find_match {
     my $i;
     # search through all the rows starting with current one or one above the last checked
     for ($i = $current_row; $i >= 0; --$i) {
-        my $line = $self->ROW_t($i);   # get the line of text from the row
+        my $line = $self->line($i);   # get the line of text from the row
 
-        $_ = $line;
+        $_ = $line->t;
 
         # find all the matches in the current line
         my $match;
@@ -215,7 +239,7 @@ sub find_match {
                                                                          )
                                                                      /ix;
         # corner case: match at the very beginning of line
-        push @{$self->{matches_in_row}}, $1 if $line =~ /^($regexp$word_char*)/i;
+        push @{$self->{matches_in_row}}, $1 if $line->t =~ /^($regexp$word_char*)/i;
 
         if (@{$self->{matches_in_row}}) {
             # remember which row should be searched next
