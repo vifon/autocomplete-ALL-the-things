@@ -13,8 +13,8 @@ Add the following lines to your `~/.Xresources` (or `~/.Xdefaults`):
 
 ```
 URxvt.perl-ext-common:    ...,autocomplete-ALL-the-things
-URxvt.keysym.M-C-slash:   perl:aAtt:complete
-URxvt.keysym.M-question:  perl:aAtt:skeleton-complete
+URxvt.keysym.M-C-slash:   perl:aAtt:word-complete
+URxvt.keysym.M-question:  perl:aAtt:fuzzy-complete
 URxvt.keysym.M-quotedbl:  perl:aAtt:undo
 ```
 
@@ -43,7 +43,7 @@ Key bound to `aAtt:undo` (Alt-Shift-quote) undoes the completion.
 Advanced usage
 --------------
 
-For more advanced completions use `aAtt:skeleton-word-complete`
+For more advanced completions use `aAtt:fuzzy-word-complete`
 (Alt-Shift-slash) and `aAtt:skeleton-complete`. It's behavior is inspired by
 [skeleton-complete](https://github.com/baohaojun/skeleton-complete), please see
 [its readme](http://baohaojun.github.io/skeleton-complete.html) for a more
@@ -52,10 +52,10 @@ detailed explanation.
 Available functions
 -------------------
 
-* `aAtt:complete` -- classical prefix-based completion
-* `aAtt:skeleton-word-complete` -- skeleton-based completion for words
-* `aAtt:skeleton-WORD-complete` -- skeleton-based completion for WORDS (in the Vim meaning)
-* `aAtt:skeleton-complete` -- skeleton-based completion for arbitrary strings
+* `aAtt:word-complete` -- classical prefix-based completion for words
+* `aAtt:WORD-complete` -- completion for WORDS (in the Vim meaning)
+* `aAtt:fuzzy-word-complete` -- fuzzy completion for words
+* `aAtt:fuzzy-complete` -- fuzzy completion for arbitrary strings
 * `aAtt:undo` -- undo the completion (must be used right after a completion)
 
 Acknowledgments
