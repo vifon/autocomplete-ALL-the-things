@@ -55,6 +55,7 @@ Available functions
 * `aAtt:word-complete` -- classical prefix-based completion for words
 * `aAtt:WORD-complete` -- completion for WORDS (in the Vim meaning)
 * `aAtt:fuzzy-word-complete` -- fuzzy completion for words
+* `aAtt:fuzzy-WORD-complete` -- fuzzy completion for WORDS
 * `aAtt:fuzzy-complete` -- fuzzy completion for arbitrary strings
 * `aAtt:undo` -- undo the completion (must be used right after a completion)
 

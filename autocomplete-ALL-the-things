@@ -77,6 +77,12 @@ sub on_user_command {
             $matcher                = generate_matcher('[-\w]*');
             $char_class_at_end      = '[-\w]';
             $char_class_to_complete = '[-\w]';
+        } elsif ($cmd eq 'fuzzy-WORD-complete') {
+            # Fuzzy completion of the current WORD.
+            $char_class_before      = '\s';
+            $matcher                = generate_matcher('\S*');
+            $char_class_at_end      = '\S';
+            $char_class_to_complete = '\S';
         } elsif ($cmd eq 'fuzzy-complete' ||
                  $cmd eq 'skeleton-complete') {
             # Fuzzy completion of an arbitrary text.
