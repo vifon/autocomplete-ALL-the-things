@@ -141,8 +141,6 @@ sub on_key_press {
         completion_history_cleanup($self);
     }
 
-    clear_highlight($self);
-
     ()
 }
 
