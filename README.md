@@ -67,7 +67,7 @@ Thanks to Bao Haojun for the great idea of [skeleton-complete](https://github.co
 Copyright
 ---------
 
-Copyright (C) 2012-2013  Wojciech Siewierski
+Copyright (C) 2012-2014  Wojciech Siewierski
 
 This program is free software: you can redistribute it and/or modify
 it under the terms of the GNU General Public License as published by
