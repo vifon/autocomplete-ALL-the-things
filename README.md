@@ -62,6 +62,8 @@ Available functions
 Acknowledgments
 ---------------
 
+Thanks to Stanislav Seletskiy for various contributions.
+
 Thanks to Bao Haojun for the great idea of [skeleton-complete](https://github.com/baohaojun/skeleton-complete).
 
 Copyright
