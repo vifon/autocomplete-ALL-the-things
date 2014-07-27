@@ -127,8 +127,7 @@ sub on_user_command {
         return 1;
     }
 
-    # forget the last completion on any other command
-    completion_history_cleanup($self);
+    leave($self);
 
     ()
 }
@@ -136,9 +135,8 @@ sub on_user_command {
 sub on_key_press {
     my ($self, $event, $keysym) = @_;
 
-    # forget the last completion when the user presses any ASCII key
-    if ($keysym <= 127) { # if ASCII
-        completion_history_cleanup($self);
+    if ($keysym <= 127) { # if ASCII, ignore ctrl etc.
+        leave($self);
     }
 
     ()
@@ -292,7 +290,7 @@ sub find_match {
 
 ######################################################################
 
-sub completion_history_cleanup {
+sub leave {
     my ($self) = @_;
 
     delete $self->{last_word};
@@ -309,5 +307,5 @@ sub undo_completion {
     my ($self) = @_;
 
     replace_text($self, $self->{last_completion}, $self->{last_word});
-    completion_history_cleanup($self);
+    leave($self);
 }
