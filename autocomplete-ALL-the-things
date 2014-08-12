@@ -1,6 +1,6 @@
 #!/usr/bin/perl
 #########################################################################
-# Copyright (C) 2012-2013  Wojciech Siewierski                          #
+# Copyright (C) 2012-2014  Wojciech Siewierski                          #
 #                                                                       #
 # This program is free software: you can redistribute it and/or modify  #
 # it under the terms of the GNU General Public License as published by  #
@@ -127,8 +127,7 @@ sub on_user_command {
         return 1;
     }
 
-    # forget the last completion on any other command
-    completion_history_cleanup($self);
+    leave($self);
 
     ()
 }
@@ -136,12 +135,9 @@ sub on_user_command {
 sub on_key_press {
     my ($self, $event, $keysym) = @_;
 
-    # forget the last completion when the user presses any ASCII key
-    if ($keysym <= 127) { # if ASCII
-        completion_history_cleanup($self);
+    if ($keysym <= 127) { # if ASCII, ignore ctrl etc.
+        leave($self);
     }
-
-    clear_highlight($self);
 
     ()
 }
@@ -158,23 +154,14 @@ sub highlight_match {
 
     $line->t =~ /$re/;
 
-    my ($sl, $sc) = $line->coord_of($-[0]);
-    my ($el, $ec) = $line->coord_of($+[0]);
+    my ($beg_row, $beg_col) = $line->coord_of($-[0]);
+    my ($end_row, $end_col) = $line->coord_of($+[0]);
 
-    $self->{highlight} = [$sl, $sc, $el, $ec];
-}
-
-sub on_refresh_begin {
-    my ($self) = @_;
-
-    clear_highlight($self);
-
-    if ($self->{highlight}) {
-        my ($sl, $sc, $el, $ec) = @{$self->{highlight}};
-        $self->scr_xor_span($sl, $sc, $el, $ec, urxvt::RS_RVid);
-
-        $self->{highlighted} = 1
-    }
+    $self->{highlight} = [$beg_row, $beg_col, $end_row, $end_col];
+    $self->enable(refresh_begin => sub {
+                      $self->scr_xor_span(@{$self->{highlight}}, urxvt::RS_RVid);
+                      $self->enable(refresh_begin => \&clear_highlight);
+                  });
 }
 
 ######################################################################
@@ -182,12 +169,11 @@ sub on_refresh_begin {
 sub clear_highlight {
     my $self = shift;
 
-    if ($self->{highlighted}) {
-        my ($sl, $sc, $el, $ec) = @{$self->{highlight}};
-        $self->scr_xor_span($sl, $sc, $el, $ec, urxvt::RS_RVid);
+    if (exists $self->{highlight}) {
+        $self->scr_xor_span(@{$self->{highlight}}, urxvt::RS_RVid);
 
         delete $self->{highlight};
-        delete $self->{highlighted};
+        $self->disable("refresh_begin");
     }
 }
 
@@ -304,7 +290,7 @@ sub find_match {
 
 ######################################################################
 
-sub completion_history_cleanup {
+sub leave {
     my ($self) = @_;
 
     delete $self->{last_word};
@@ -321,5 +307,5 @@ sub undo_completion {
     my ($self) = @_;
 
     replace_text($self, $self->{last_completion}, $self->{last_word});
-    completion_history_cleanup($self);
+    leave($self);
 }

@@ -62,12 +62,14 @@ Available functions
 Acknowledgments
 ---------------
 
+Thanks to Stanislav Seletskiy for various contributions.
+
 Thanks to Bao Haojun for the great idea of [skeleton-complete](https://github.com/baohaojun/skeleton-complete).
 
 Copyright
 ---------
 
-Copyright (C) 2012-2013  Wojciech Siewierski
+Copyright (C) 2012-2014  Wojciech Siewierski
 
 This program is free software: you can redistribute it and/or modify
 it under the terms of the GNU General Public License as published by
