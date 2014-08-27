@@ -135,7 +135,7 @@ sub on_user_command {
 sub on_key_press {
     my ($self, $event, $keysym) = @_;
 
-    if ($keysym <= 127) { # if ASCII, ignore ctrl etc.
+    if ($keysym <= 127 || $self->XKeysymToString($keysym) eq "Return") { # if ASCII, ignore ctrl etc.
         leave($self);
     }
 
@@ -160,6 +160,7 @@ sub highlight_match {
     $self->{highlight} = [$beg_row, $beg_col, $end_row, $end_col];
     $self->enable(refresh_begin => sub {
                       $self->scr_xor_span(@{$self->{highlight}}, urxvt::RS_RVid);
+                      $self->{pty_ev_events} = $self->pty_ev_events(urxvt::EV_NONE);
                       $self->enable(refresh_begin => \&clear_highlight);
                   });
 }
@@ -171,10 +172,13 @@ sub clear_highlight {
 
     if (exists $self->{highlight}) {
         $self->scr_xor_span(@{$self->{highlight}}, urxvt::RS_RVid);
+        $self->pty_ev_events($self->{pty_ev_events});
+        delete $self->{pty_ev_events};
 
         delete $self->{highlight};
         $self->disable("refresh_begin");
     }
+    ()
 }
 
 ######################################################################
