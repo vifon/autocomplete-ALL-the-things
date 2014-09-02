@@ -138,7 +138,9 @@ sub on_key_press {
     my $keyname = $self->XKeysymToString($keysym);
     if ($keysym <= 127 ||       # if ASCII, ignore ctrl etc.
         $keyname eq "Return" ||
-        $keyname eq "BackSpace") {
+        $keyname eq "BackSpace" ||
+        $keyname eq "Delete" ||
+        $keyname eq "Tab") {
 
         leave($self);
     }
