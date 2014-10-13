@@ -132,7 +132,9 @@ sub on_user_command {
     ()
 }
 
-sub on_key_press {
+######################################################################
+
+sub conditional_leave {
     my ($self, $event, $keysym) = @_;
 
     my $keyname = $self->XKeysymToString($keysym);
@@ -143,6 +145,7 @@ sub on_key_press {
         $keyname eq "Tab") {
 
         leave($self);
+        $self->disable("key_press");
     }
 
     ()
@@ -168,7 +171,8 @@ sub highlight_match {
                       $self->scr_xor_span(@{$self->{highlight}}, urxvt::RS_RVid);
                       $self->{pty_ev_events} = $self->pty_ev_events(urxvt::EV_NONE);
                       $self->enable(refresh_begin => \&clear_highlight);
-                  });
+                  },
+                  key_press => \&conditional_leave);
 }
 
 ######################################################################
