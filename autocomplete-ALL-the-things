@@ -144,15 +144,16 @@ sub conditional_leave {
 
     my $keyname = $self->XKeysymToString($keysym);
     # if ASCII, ignore ctrl etc.
-    if (($event->{'state'} < 2 && $keysym <= 127) ||
-        $keyname eq "Return" ||
-        $keyname eq "BackSpace" ||
-        $keyname eq "Delete" ||
-        $keyname eq "Tab" ||
-        $keyname eq "Up" ||
-        $keyname eq "Down" ||
-        $keyname eq "Left" ||
-        $keyname eq "Right") {
+    if ($event->{'state'} < 2 &&
+        ($keysym <= 127 ||
+         $keyname eq "Return" ||
+         $keyname eq "BackSpace" ||
+         $keyname eq "Delete" ||
+         $keyname eq "Tab" ||
+         $keyname eq "Up" ||
+         $keyname eq "Down" ||
+         $keyname eq "Left" ||
+         $keyname eq "Right")) {
 
         leave($self);
         $self->disable("key_press");
