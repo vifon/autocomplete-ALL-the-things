@@ -39,6 +39,8 @@ Alt-Ctrl-slash) to complete the word at point. Subsequent uses cycle through
 other possible completions.
 
 Key bound to `aAtt:undo` (Alt-Shift-quote) undoes the completion.
+Additionally, pressing `Escape` undoes the completion too regardless
+of this setting.
 
 Advanced usage
 --------------

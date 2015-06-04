@@ -144,6 +144,13 @@ sub conditional_leave {
 
     my $keyname = $self->XKeysymToString($keysym);
     $_ = $keyname;
+
+    if ($keyname eq "Escape") {
+        undo_completion($self);
+        $self->disable("key_press");
+        return 1;
+    }
+
     unless (/Shift/ || /Control/ || /Alt/ || /Super/) {
         leave($self);
         $self->disable("key_press");
