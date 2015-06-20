@@ -157,8 +157,7 @@ sub conditional_leave {
     my $Mod4Mask    = (1<<6);
     my $Mod5Mask    = (1<<7);
 
-    my $modifier_mask = $ShiftMask
-                      | $ControlMask
+    my $modifier_mask = $ControlMask
                       | $Mod1Mask  # Alt
                       | $Mod5Mask; # AltGr
 
