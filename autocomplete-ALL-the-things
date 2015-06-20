@@ -162,15 +162,24 @@ sub conditional_leave {
                       | $Mod5Mask; # AltGr
 
     # Stop the completion mode only when either a alphanumeric key is
-    # pressed (regardless of any modifiers) or a symbol key is pressed
-    # without any modifiers. It is needed because the key_press hooks
-    # are processed before the user_command hooks and stopping on
-    # every printable character would break the completion chaining.
-    # For this to work, the actions must be bound to the symbol
-    # characters with some modifiers (for example Ctrl+Alt+slash).
-    if (/^\w$/
-        || (!($event->{state} & $modifier_mask)
-            && $keysym <= 127)) {
+    # pressed (regardless of any modifiers) or a printable key is
+    # pressed without any modifiers. It is needed because the
+    # key_press hooks are processed before the user_command hooks and
+    # stopping on every printable character would break the completion
+    # chaining. For this to work, the actions must be bound to the
+    # symbol characters with some modifiers (for example
+    # Ctrl+Alt+slash).
+    if (/^\w$/ ||
+        (!($event->{state} & $modifier_mask) &&
+         ($keysym <= 127          ||
+          $keyname eq "Return"    ||
+          $keyname eq "BackSpace" ||
+          $keyname eq "Delete"    ||
+          $keyname eq "Tab"       ||
+          $keyname eq "Up"        ||
+          $keyname eq "Down"      ||
+          $keyname eq "Left"      ||
+          $keyname eq "Right"))) {
 
         leave($self);
         $self->disable("key_press");
