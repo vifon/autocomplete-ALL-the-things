@@ -151,7 +151,28 @@ sub conditional_leave {
         return 1;
     }
 
-    unless (/Shift/ || /Control/ || /Alt/ || /Super/) {
+    my $ShiftMask   = (1<<0);
+    my $ControlMask = (1<<2);
+    my $Mod1Mask    = (1<<3);
+    my $Mod4Mask    = (1<<6);
+    my $Mod5Mask    = (1<<7);
+
+    my $modifier_mask = $ShiftMask
+                      | $ControlMask
+                      | $Mod1Mask  # Alt
+                      | $Mod5Mask; # AltGr
+
+    # Stop the completion mode only when either a alphanumeric key is
+    # pressed (regardless of any modifiers) or a symbol key is pressed
+    # without any modifiers. It is needed because the key_press hooks
+    # are processed before the user_command hooks and stopping on
+    # every printable character would break the completion chaining.
+    # For this to work, the actions must be bound to the symbol
+    # characters with some modifiers (for example Ctrl+Alt+slash).
+    if (/^\w$/
+        || (!($event->{state} & $modifier_mask)
+            && $keysym <= 127)) {
+
         leave($self);
         $self->disable("key_press");
     }

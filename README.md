@@ -38,6 +38,10 @@ Just press the key bound to `aAtt:complete` (in the example above:
 Alt-Ctrl-slash) to complete the word at point. Subsequent uses cycle through
 other possible completions.
 
+It is not recommended to bind the completion actions to the
+alphanumeric keys. The symbol keys should be preferred.
+See the issue #13.
+
 Key bound to `aAtt:undo` (Alt-Shift-quote) undoes the completion.
 Additionally, pressing `Escape` undoes the completion too regardless
 of this setting.
