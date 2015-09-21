@@ -237,7 +237,7 @@ sub replace_text {
     my ($self, $current_text, $replacement) = @_;
 
     # "press" backspace to erase the text; probably not portable
-    $self->tt_paste($self->locale_encode(chr(0x7F) x length $current_text));
+    $self->tt_write($self->locale_encode(chr(0x7F) x length $current_text));
 
     # print out the replacement
     $self->tt_write($self->locale_encode($replacement));
