@@ -159,7 +159,8 @@ sub conditional_leave {
 
     my $modifier_mask = $ControlMask
                       | $Mod1Mask  # Alt
-                      | $Mod5Mask; # AltGr
+                      | $Mod5Mask  # AltGr
+                      | $Mod4Mask; # Super
 
     # Stop the completion mode only when either a alphanumeric key is
     # pressed (regardless of any modifiers) or a printable key is
