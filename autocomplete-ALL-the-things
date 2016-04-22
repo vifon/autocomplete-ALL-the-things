@@ -115,7 +115,7 @@ sub on_user_command {
             # Here we match text till enclosing pair, using perl conditionals in
             # regexps (?(condition)yes-expression|no-expression).
             # \0 is used to hack concatenation with '*' later in the code.
-            $char_class_at_end      = '\S+?(.(?=(?<b>]|(?<p>\)|\g{q}))))\0';
+            $char_class_at_end      = '.*?(.(?=(?(<b>)\]|((?(<p>)\)|\g{q})))))\0';
             $char_class_to_complete = '\S';
         }
 
