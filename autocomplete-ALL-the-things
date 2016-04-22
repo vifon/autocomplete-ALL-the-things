@@ -20,6 +20,7 @@ sub on_action {
     my ($self, $action) = @_;
 
     on_user_command($self, "aAtt:" . $action);
+        print($action);
 }
 
 sub on_user_command {
@@ -95,7 +96,29 @@ sub on_user_command {
             $matcher                = generate_matcher('.*?');
             $char_class_at_end      = '\w';
             $char_class_to_complete = '\S';
+        } elsif ($cmd eq 'suffix-complete') {
+            # Fuzzy completion of an completing suffixes, like 
+            # completing test=hello from /blah/hello.
+            $char_class_before      = '\S';
+            $matcher                = generate_matcher('\S*');
+            $char_class_at_end      = '\S';
+            $char_class_to_complete = '\S';
+        } elsif ($cmd eq 'surround-complete') {
+            # Completing contents of quotes and braces.
+
+            # Here we are using three named groups: s, b, r for quotes, braces
+            # and parenthesis.
+            $char_class_before      = '((?<q>["\'])|(?<b>\[)|(?<p>\())';
+
+            $matcher                = generate_matcher('.*?');
+
+            # Here we match text till enclosing pair, using perl conditionals in
+            # regexps (?(condition)yes-expression|no-expression).
+            # \0 is used to hack concatenation with '*' later in the code.
+            $char_class_at_end      = '\S+?(.(?=(?<b>]|(?<p>\)|\g{q}))))\0';
+            $char_class_to_complete = '\S';
         }
+
 
         my ($row, $col) = $self->screen_cur(); # get cursor coordinates
 
@@ -318,15 +341,15 @@ sub find_match {
 
         # find all the matches in the current line
         my $match;
-        push @{$self->{matches_in_row}}, $match while ($_, $match) = /
+        push @{$self->{matches_in_row}}, $+{match} while ($_, $match) = /
                                                                          (.*${char_class_before})
-                                                                         (
+                                                                         (?<match>
                                                                              ${regexp}
                                                                              ${char_class_at_end}*
                                                                          )
                                                                      /ix;
         # corner case: match at the very beginning of line
-        push @{$self->{matches_in_row}}, $1 if $line->t =~ /^($regexp$char_class_at_end*)/i;
+        push @{$self->{matches_in_row}}, $+{match} if $line->t =~ /^(${char_class_before}){0}(?<match>$regexp$char_class_at_end*)/i;
 
         if (@{$self->{matches_in_row}}) {
             # remember which row should be searched next

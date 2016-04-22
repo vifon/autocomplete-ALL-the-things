@@ -63,6 +63,10 @@ Available functions
 * `aAtt:fuzzy-word-complete` -- fuzzy completion for words
 * `aAtt:fuzzy-WORD-complete` -- fuzzy completion for WORDS
 * `aAtt:fuzzy-complete` -- fuzzy completion for arbitrary strings
+* `aAtt:suffix-complete` -- fuzzy completion for suffixes, disrespecting
+  prefixes of both completion and given strings
+* `aAtt:surround-complete` -- fuzzy completion for surrounded by quotes or
+  braces strings, excluding surrounding.
 * `aAtt:undo` -- undo the completion (must be used right after a completion)
 
 Acknowledgments
