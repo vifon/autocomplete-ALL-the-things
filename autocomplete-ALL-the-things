@@ -20,7 +20,6 @@ sub on_action {
     my ($self, $action) = @_;
 
     on_user_command($self, "aAtt:" . $action);
-        print($action);
 }
 
 sub on_user_command {
