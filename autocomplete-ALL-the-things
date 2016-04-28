@@ -96,7 +96,7 @@ sub on_user_command {
             $char_class_at_end      = '\w';
             $char_class_to_complete = '\S';
         } elsif ($cmd eq 'suffix-complete') {
-            # Fuzzy completion of an completing suffixes, like 
+            # Fuzzy completion of an completing suffixes, like
             # completing test=hello from /blah/hello.
             $char_class_before      = '\S';
             $matcher                = generate_matcher('\S*');
