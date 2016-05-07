@@ -338,6 +338,12 @@ sub find_match {
 
         $_ = $line->t;
 
+        if ($i == $current_row) {
+            my ($cursor_row, $cursor_column) = $self->screen_cur();
+
+            $_ = substr $line, 0, $cursor_column;
+        }
+
         # find all the matches in the current line
         my $match;
         push @{$self->{matches_in_row}}, $+{match} while ($_, $match) = /
