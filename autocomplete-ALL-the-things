@@ -338,9 +338,8 @@ sub find_match {
 
         $_ = $line->t;
 
-        if ($i == $current_row) {
-            my ($cursor_row, $cursor_column) = $self->screen_cur();
-
+        my ($cursor_row, $cursor_column) = $self->screen_cur();
+        if ($i == $cursor_row) {
             $_ = substr $line, 0, $cursor_column;
         }
 
