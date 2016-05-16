@@ -334,14 +334,14 @@ sub find_match {
     my $i;
     # search through all the rows starting with current one or one above the last checked
     for ($i = $current_row; $i >= 0; --$i) {
-        my $line = $self->line($i);   # get the line of text from the row
-
-        $_ = $line->t;
+        my $line = $self->line($i)->t;   # get the line of text from the row
 
         my ($cursor_row, $cursor_column) = $self->screen_cur();
         if ($i == $cursor_row) {
-            $_ = substr $line, 0, $cursor_column;
+            $line = substr $line, 0, $cursor_column;
         }
+
+        $_ = $line;
 
         # find all the matches in the current line
         my $match;
@@ -353,7 +353,7 @@ sub find_match {
                                                                          )
                                                                      /ix;
         # corner case: match at the very beginning of line
-        push @{$self->{matches_in_row}}, $+{match} if $line->t =~ /^(${char_class_before}){0}(?<match>$regexp$char_class_at_end*)/i;
+        push @{$self->{matches_in_row}}, $+{match} if $line =~ /^(${char_class_before}){0}(?<match>$regexp$char_class_at_end*)/i;
 
         if (@{$self->{matches_in_row}}) {
             # remember which row should be searched next
