@@ -302,7 +302,7 @@ sub generate_matcher {
 # completion.
 #
 # Takes all the arguments that find_match() would take, to make a
-# mutualy recursive call.
+# mutually recursive call.
 sub skip_duplicates {
     my $self = $_[0];
     my $completion = shift @{$self->{matches_in_row}}; # get the rightmost one
