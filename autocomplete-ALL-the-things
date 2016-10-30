@@ -233,7 +233,6 @@ sub highlight_match {
                       $self->{highlight} = [$beg_row, $beg_col, $end_row, $end_col];
                       $self->scr_xor_span(@{$self->{highlight}}, urxvt::RS_RVid);
                       $self->{pty_ev_events} = $self->pty_ev_events(urxvt::EV_NONE);
-                      $self->enable(refresh_begin => \&clear_highlight);
                   },
                   key_press => \&conditional_leave);
 }
